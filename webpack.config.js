@@ -1,14 +1,5 @@
 const path = require('path')
 var HtmlWebpackPlugin = require('html-webpack-plugin');
-/*
-module.exports = {
-  entry: './lesson.js',
-  output: {
-    path: path.resolve(__dirname, 'dist'),
-    filename: 'bundle.js'
-  }
-};
-*/
 
 module.exports = {
   watch: true,
@@ -34,6 +25,5 @@ module.exports = {
     new HtmlWebpackPlugin({
       template: './index.html'
     })
-  ],
-  mode: 'production'
+  ]
 }
