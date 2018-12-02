@@ -45,7 +45,7 @@ function print(val: string) {
     document.body.appendChild(el);
 }
 
-/*
+
 const observable = Observable.create((observer: Observer<string>) => {
     observer.next('hello');
     observer.next('world');
@@ -259,7 +259,7 @@ numbersMerge1.pipe(
 ).subscribe(
     (combined) => print(combined.toString()),
 );
-*/
+
 /*
 const click$ = fromEvent(buttonone, 'click');
 const interval$ = interval(1000);
@@ -291,7 +291,7 @@ clicksToInterval$.subscribe((intervalObservable$) => {
     });
  });
 */
-/*
+
 const button = document.querySelector('button');
 const buttonone = document.querySelector('button#one');
 const buttontwo = document.querySelector('button#two');
@@ -348,7 +348,7 @@ const mergeMapExample = source
   );
 
 mergeMapExample.subscribe((val) => print(`With mergeMap: ${val}`));
-*/
+
 /*
 const clicksToInterval$ = click$.pipe(
     map((event) => interval$),
@@ -396,7 +396,7 @@ function mySwitchMap(innerObservable: any) {
 
 MyObservable.prototype.mergeMap = mergeMap;
 */
-/* 
+
 // Subject
 const simpleSubject = new Subject();
 
@@ -455,15 +455,14 @@ replaySubject.subscribe((data) => {
 });
 
 replaySubject.next(Math.random());
-*/
 
-/*
-let notifier = timer(1001);
+
+const stopNotifier = timer(1001);
 const intervalSubject = new ReplaySubject(2, 100);
 
 // subscriber 1
 intervalSubject.pipe(
-    takeUntil(notifier)
+    takeUntil(stopNotifier)
 )
 .subscribe((data) => {
     print('intervalSubject ReplaySubject Subscriber A:' + data);
@@ -474,12 +473,11 @@ setInterval(() => intervalSubject.next(Math.random()), 200);
 // subscriber 2
 setTimeout(() => {
   intervalSubject.pipe(
-    takeUntil(notifier)
+    takeUntil(stopNotifier)
 ).subscribe((data) => {
     print('intervalSubject ReplaySubject Subscriber B:' + data);
   });
 }, 1000);
-*/
 
 const asyncSubject = new AsyncSubject();
 
@@ -501,3 +499,45 @@ asyncSubject.next(Math.random());
 asyncSubject.complete();
 
 
+// todo: combineLatest, fromLatest
+
+
+// todo: COLD and HOT
+
+// COLD is when your observable creates the producer
+// COLD
+var cold = new Observable((observer) => {
+    var producer = new Producer();
+    // have
+})
+
+// HOT is when your observable closes over the producer
+// HOT
+var producer = new Producer();
+var hot = new Observable((observer) => {
+  // have observer listen to producer here
+});
+
+
+ // `publish()` and `share()`
+
+function makeHot(cold) {
+  const subject = new Subject();
+  cold.subscribe(subject);
+  return new Observable((observer) => subject.subscribe(observer));
+}
+
+function makeHotRefCounted(cold) {
+  const subject = new Subject();
+  const mainSub = cold.subscribe(subject);
+  let refs = 0;
+  return new Observable((observer) => {
+    refs++;
+    let sub = subject.subscribe(observer);
+    return () => {
+      refs--;
+      if (refs === 0) mainSub.unsubscribe();
+      sub.unsubscribe();
+    };
+  });
+}
