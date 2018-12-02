@@ -37,15 +37,17 @@ import {
     takeWhile,
     tap,
     throttleTime,
+    withLatestFrom
 } from 'rxjs/operators';
 
-function print(val: string) {
+function print(val: string, lineId: string) {
     const el = document.createElement('p');
     el.innerText = val;
-    document.body.appendChild(el);
+    const line = document.querySelector('div.line#' + lineId);
+    line.appendChild(el);
 }
 
-
+/*
 const observable = Observable.create((observer: Observer<string>) => {
     observer.next('hello');
     observer.next('world');
@@ -292,6 +294,7 @@ clicksToInterval$.subscribe((intervalObservable$) => {
  });
 */
 
+/*
 const button = document.querySelector('button');
 const buttonone = document.querySelector('button#one');
 const buttontwo = document.querySelector('button#two');
@@ -348,7 +351,7 @@ const mergeMapExample = source
   );
 
 mergeMapExample.subscribe((val) => print(`With mergeMap: ${val}`));
-
+*/
 /*
 const clicksToInterval$ = click$.pipe(
     map((event) => interval$),
@@ -396,7 +399,7 @@ function mySwitchMap(innerObservable: any) {
 
 MyObservable.prototype.mergeMap = mergeMap;
 */
-
+/*
 // Subject
 const simpleSubject = new Subject();
 
@@ -497,17 +500,16 @@ asyncSubject.subscribe((data) => {
 
 asyncSubject.next(Math.random());
 asyncSubject.complete();
-
-
+*/
 // todo: combineLatest, fromLatest
 
-
+/*
 // todo: COLD and HOT
 
 // COLD is when your observable creates the producer
 // COLD
-var cold = new Observable((observer) => {
-    var producer = new Producer();
+const coldObs = new Observable((observer) => {
+    const producer = new Producer();
     // have
 })
 
@@ -541,3 +543,50 @@ function makeHotRefCounted(cold) {
     };
   });
 }
+*/
+
+/*
+//emit value in sequence every 1 second
+const source_interval = interval(1000);
+//output: 0,1,2,3,4,5....
+const subscribe = source_interval.subscribe(val => print(val + ''));
+*/
+
+
+//emit every 5s
+const fastSource = interval(5000);
+//emit every 1s
+const FastSecondSource = interval(1000);
+const exampleFast = fastSource.pipe(
+  withLatestFrom(FastSecondSource),
+  map(([first, second]) => {
+    return `First Source (5s): ${first}, Second Source (1s): ${second}`;
+  })
+);
+
+//  "First Source (5s): 0 Second Source (1s): 4"
+//  "First Source (5s): 1 Second Source (1s): 9"
+//  "First Source (5s): 2 Second Source (1s): 14"
+
+const subscriptionFast = exampleFast.subscribe(val => print(val, 'line-two'));
+
+
+//emit every 5s
+const slowSource = interval(5000);
+//emit every 1s
+const slowSecondSource = interval(1000);
+//withLatestFrom slower than source
+const exampleSlow = slowSecondSource.pipe(
+  //both sources must emit at least 1 value (5s) before emitting
+  withLatestFrom(slowSource),
+  map(([first, second]) => {
+    return `Source (1s): ${first}, Latest From (5s): ${second}`;
+  })
+);
+/*
+  "Source (1s): 4 Latest From (5s): 0"
+  "Source (1s): 5 Latest From (5s): 0"
+  "Source (1s): 6 Latest From (5s): 0"
+  ...
+*/
+const subscriptionSlow = exampleSlow.subscribe(val => print(val, 'line-one'));

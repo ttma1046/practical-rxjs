@@ -1,27 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <meta http-equiv="X-UA-Compatible" content="ie=edge">
-        <title>RxJS Demo</title>
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>RxJS Demo</title>
+    <style>
+        .line {
+          float: left; /* fix for  buggy browsers */
+          width: 400px;
+        }
 
-    <body>
-        <h1>RxJS Demo</h1>
-        <input type="text" id="input1">
-        <input type="text" id="input2">
-        
-        <p>
-            Combined value: <span></span>
-        </p>
-        <button>Click to start</button>
-        <button id='one'>Click to start MergeMap</button>
-        <button id='two'>Click to start SwitchMap</button>
-        <button id='three'>Click to start ConcatMap</button>
+    </style>
+</head>
 
-
-    </body>
+<body>
+    <h1>RxJS Demo</h1>
+    <input type="text" id="input1">
+    <input type="text" id="input2">
+    <p>
+        Combined value: <span></span>
+    </p>
+    <button>Click to start</button>
+    <button id='one'>Click to start MergeMap</button>
+    <button id='two'>Click to start SwitchMap</button>
+    <button id='three'>Click to start ConcatMap</button>
+    <br />
+    <div>
+        <div id="line-one" class="line">Line 1</div>
+        <div id="line-two" class="line">Line 2</div>
+    </div>
+</body>
 
 </html>
