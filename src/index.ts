@@ -12,7 +12,8 @@ import {
     AsyncSubject,
     throwError,
     timer,
-    zip
+    zip,
+    Subscriber
 } from 'rxjs';
 
 import {
@@ -37,15 +38,121 @@ import {
     takeWhile,
     tap,
     throttleTime,
-    withLatestFrom
+    withLatestFrom,
+    retryWhen
 } from 'rxjs/operators';
 
-function print(val: string, lineId: string) {
+function print(val: any, lineId: string) {
     const el = document.createElement('p');
     el.innerText = val;
     const line = document.querySelector('div.line#' + lineId);
     line.appendChild(el);
 }
+
+const getDataButton = document.querySelector('#getDataButton');
+
+const click$ = fromEvent(getDataButton, 'click');
+
+function fakeGetData() {
+    return new Observable((subscriber: Subscriber<{}>) => {
+        if (Math.random() >= 0.5) {
+            print('return data', 'line-one');
+            subscriber.next('data');
+            subscriber.complete();
+        } else {
+            print('error', 'line-one');
+
+            subscriber.error(new Error('bad luck'));
+        }
+    })
+}
+
+function otherfakeGetData() {
+    return new Observable((subscriber: Subscriber<{}>) => {
+        if (Math.random() > 0.5) {
+            subscriber.next('data');
+            subscriber.complete();
+        } else {
+            subscriber.error(new Error('bad luck'));
+        }
+    })
+}
+
+otherfakeGetData().pipe(
+    concatMap(() => fakeGetData().pipe(
+        retry(),
+/*       catchError(error => { 
+          print('it is okay', 'line-one'); 
+          return throwError('it is okay'); 
+      })  */ 
+    )),
+    catchError(error => throwError('it is other okay'))
+)
+.subscribe({
+    next: x => print(x, 'line-one'),
+    error: error => print(error, 'line-two')
+});
+
+
+click$.pipe(
+    concatMap(() => fakeGetData().pipe(
+        tap({
+            error() { print('error catched.', 'line-one')}
+        }),
+        retry(),
+        retryWhen(error$ => {
+            console.log('setting up retrying');
+
+            return error$.pipe(
+                switchMap((err): Observable<any> => {
+                    if (navigator.onLine) {
+                        return timer(1000);
+                    } else {
+                        return fromEvent(document, 'online');
+                    }
+                })
+            )
+        })
+/*       catchError(error => { 
+          print('it is okay', 'line-one'); 
+          return throwError('it is okay'); 
+      })  */ 
+    )),
+    catchError(error => throwError('it is other okay'))
+)
+.subscribe({
+    next: x => print(x, 'line-one'),
+    error: error => print(error, 'line-two')
+});
+
+
+/*     clicks  concatMap      subscribe
+next ----0-------->0 ....o ------>o
+error    x 
+complete x
+*/
+
+
+/*       fakeData
+      next      o
+      error     o
+      complete  o
+*/
+/*
+const source = fakeGetData().pipe(
+    catchError(err => {
+        print('saw error:' + err.message, 'line-one');
+        return throwError('throw error');
+    })
+);
+
+source.subscribe(
+    x => { print(x, 'line-one'); },
+    error => { print(error, 'line-two'); }
+);
+*/
+
+
 
 /*
 const observable = Observable.create((observer: Observer<string>) => {
@@ -552,6 +659,7 @@ const source_interval = interval(1000);
 const subscribe = source_interval.subscribe(val => print(val + ''));
 */
 
+/*
 
 //emit every 5s
 const fastSource = interval(5000);
@@ -583,10 +691,10 @@ const exampleSlow = slowSecondSource.pipe(
     return `Source (1s): ${first}, Latest From (5s): ${second}`;
   })
 );
+const subscriptionSlow = exampleSlow.subscribe(val => print(val, 'line-one'));
 /*
   "Source (1s): 4 Latest From (5s): 0"
   "Source (1s): 5 Latest From (5s): 0"
   "Source (1s): 6 Latest From (5s): 0"
   ...
 */
-const subscriptionSlow = exampleSlow.subscribe(val => print(val, 'line-one'));
