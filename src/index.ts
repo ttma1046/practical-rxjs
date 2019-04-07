@@ -13,7 +13,8 @@ import {
     throwError,
     timer,
     zip,
-    Subscriber
+    Subscriber,
+    iif
 } from 'rxjs';
 
 import {
@@ -78,13 +79,28 @@ function otherfakeGetData() {
     })
 }
 
+fakeAsyncGetData().pipe(
+    switchMap((data) =>
+        iif(
+            () => data.flag === true,
+            fakeAsyncGetFollowingDataIfFlagisTrue(),
+            fakeAsyncGetFollowingDataIfFlagisFalse(),
+          ),
+    ),
+)
+.subscribe({
+    next: x => print(x, 'line-one'),
+    error: error => print(error, 'line-two')
+});
+
 otherfakeGetData().pipe(
     concatMap(() => fakeGetData().pipe(
         retry(),
-/*       catchError(error => { 
-          print('it is okay', 'line-one'); 
-          return throwError('it is okay'); 
-      })  */ 
+            /*
+                catchError(error => {
+                print('it is okay', 'line-one');
+                return throwError('it is okay');
+      })    */
     )),
     catchError(error => throwError('it is other okay'))
 )
@@ -92,6 +108,7 @@ otherfakeGetData().pipe(
     next: x => print(x, 'line-one'),
     error: error => print(error, 'line-two')
 });
+
 
 
 click$.pipe(
