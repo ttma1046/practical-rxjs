@@ -715,3 +715,71 @@ const subscriptionSlow = exampleSlow.subscribe(val => print(val, 'line-one'));
   "Source (1s): 6 Latest From (5s): 0"
   ...
 */
+
+
+/*
+const source = interval(1000).pipe(take(10));
+
+source.subscribe(x => console.log({x}));
+
+setTimeout(() => {
+source.subscribe(a => console.log({a})) }, 2000);
+
+
+const sub = new Subject();
+const sourcetwo = interval(1000).pipe(take(10));
+
+sub.asObservable().subscribe(y => console.log({y}));
+
+setTimeout(() => { sub.asObservable().subscribe(a => console.log({a})) }, 3000);
+
+sourcetwo.subscribe(sub);
+
+// connect() {}
+*/
+/*
+const sourcethree = interval(1000).pipe(take(10), multicast(new Subject<number>())) as ConnectableObservable<number>;
+
+sourcethree.subscribe(z => console.log({z}));
+setTimeout(() => { sourcethree.subscribe(v => console.log({v})) }, 3000);
+
+sourcethree.connect();
+*/
+
+/*
+const sourcefour = interval(1000).pipe(take(10), publish());
+sourcefour.connect();
+sourcefour.subscribe(z => console.log({z}));
+setTimeout(() => { sourcefour.subscribe(v => console.log({v})) }, 3000);
+*/
+
+/* 
+const sourcethreepointfive = ajax.getJSON('http://localhost:3000/users').pipe(multicast(new Subject<any>())) as ConnectableObservable<any>
+
+sourcethreepointfive.connect();
+
+sourcethreepointfive.subscribe(x => console.log({x}));
+
+sourcethreepointfive.subscribe(y => console.log({y}));
+ */
+/*
+const sourcefive = ajax.getJSON('http://localhost:3000/users').pipe(publish()) as ConnectableObservable<any>;
+
+sourcefive.connect();
+
+sourcefive.subscribe(x => console.log({x}));
+
+sourcefive.subscribe(y => console.log({y}));
+*/
+
+const sourcesix = ajax.getJSON('http://localhost:3000/users').pipe(share());
+
+const subscription = sourcesix.subscribe(x => console.log({x}));
+
+const subscriptionone = sourcesix.subscribe(a => console.log({a}));
+
+setTimeout(() => {
+  subscription.unsubscribe();
+  subscriptionone.unsubscribe();
+  sourcesix.subscribe(x => console.log({x}));
+}, 2000);
