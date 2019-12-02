@@ -17,6 +17,8 @@ import {
   iif
 } from "rxjs";
 
+import { ajax } from "rxjs/ajax";
+
 import {
   catchError,
   concatMap,
@@ -35,6 +37,7 @@ import {
   scan,
   switchAll,
   switchMap,
+  take,
   takeUntil,
   takeWhile,
   tap,
@@ -808,3 +811,13 @@ triggertwo$.subscribe(value => print(value, "two"));
 const triggerthree$ = interval(1000).pipe(startWith(0));
 triggerthree$.subscribe(value => print(value, "three"));
 */
+
+const trigger$ = timer(0, 1000).pipe(
+  concatMap(() => ajax.getJSON("http://api.icndb.com/jokes/random")),
+  take(1)
+);
+
+trigger$.subscribe(
+  value => print(JSON.stringify(value), "one"),
+  error => console.log(error)
+);
