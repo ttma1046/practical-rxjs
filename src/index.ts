@@ -1,154 +1,163 @@
 import {
-    forkJoin,
-    from,
-    fromEvent,
-    interval,
-    Observable,
-    Observer,
-    of,
-    Subject,
-    BehaviorSubject,
-    ReplaySubject,
-    AsyncSubject,
-    throwError,
-    timer,
-    zip,
-    Subscriber,
-    iif
-} from 'rxjs';
+  forkJoin,
+  from,
+  fromEvent,
+  interval,
+  Observable,
+  Observer,
+  of,
+  Subject,
+  BehaviorSubject,
+  ReplaySubject,
+  AsyncSubject,
+  throwError,
+  timer,
+  zip,
+  Subscriber,
+  iif
+} from "rxjs";
 
 import {
-    catchError,
-    concatMap,
-    debounceTime,
-    delay,
-    filter,
-    finalize,
-    first,
-    last,
-    map,
-    mergeAll,
-    mergeMap,
-    multicast,
-    publish,
-    retry,
-    scan,
-    switchAll,
-    switchMap,
-    takeUntil,
-    takeWhile,
-    tap,
-    throttleTime,
-    withLatestFrom,
-    retryWhen
-} from 'rxjs/operators';
+  catchError,
+  concatMap,
+  debounceTime,
+  delay,
+  filter,
+  finalize,
+  first,
+  last,
+  map,
+  mergeAll,
+  mergeMap,
+  multicast,
+  publish,
+  retry,
+  scan,
+  switchAll,
+  switchMap,
+  takeUntil,
+  takeWhile,
+  tap,
+  throttleTime,
+  withLatestFrom,
+  retryWhen,
+  startWith
+} from "rxjs/operators";
 
 function print(val: any, lineId: string) {
-    const el = document.createElement('p');
-    el.innerText = val;
-    const line = document.querySelector('div.line#' + lineId);
-    line.appendChild(el);
+  const el = document.createElement("p");
+  el.innerText = val;
+  const line = document.querySelector("div#line-" + lineId);
+  line.appendChild(el);
 }
 
-const getDataButton = document.querySelector('#getDataButton');
+/*
+const getDataButton = document.querySelector("#getDataButton");
 
-const click$ = fromEvent(getDataButton, 'click');
+const click$ = fromEvent(getDataButton, "click");
 
 function fakeGetData() {
-    return new Observable((subscriber: Subscriber<{}>) => {
-        if (Math.random() >= 0.5) {
-            print('return data', 'line-one');
-            subscriber.next('data');
-            subscriber.complete();
-        } else {
-            print('error', 'line-one');
+  return new Observable((subscriber: Subscriber<{}>) => {
+    if (Math.random() >= 0.5) {
+      print("return data", "line-one");
+      subscriber.next("data");
+      subscriber.complete();
+    } else {
+      print("error", "line-one");
 
-            subscriber.error(new Error('bad luck'));
-        }
-    })
+      subscriber.error(new Error("bad luck"));
+    }
+  });
 }
 
 function otherfakeGetData() {
-    return new Observable((subscriber: Subscriber<{}>) => {
-        if (Math.random() > 0.5) {
-            subscriber.next('data');
-            subscriber.complete();
-        } else {
-            subscriber.error(new Error('bad luck'));
-        }
-    })
+  return new Observable((subscriber: Subscriber<{}>) => {
+    if (Math.random() > 0.5) {
+      subscriber.next("data");
+      subscriber.complete();
+    } else {
+      subscriber.error(new Error("bad luck"));
+    }
+  });
 }
 
-fakeAsyncGetData().pipe(
-    switchMap((data) =>
-        iif(
-            () => data.flag === true,
-            fakeAsyncGetFollowingDataIfFlagisTrue(),
-            fakeAsyncGetFollowingDataIfFlagisFalse(),
-          ),
-    ),
-)
-.subscribe({
-    next: x => print(x, 'line-one'),
-    error: error => print(error, 'line-two')
-});
+fakeAsyncGetData()
+  .pipe(
+    switchMap(data =>
+      iif(
+        () => data.flag === true,
+        fakeAsyncGetFollowingDataIfFlagisTrue(),
+        fakeAsyncGetFollowingDataIfFlagisFalse()
+      )
+    )
+  )
+  .subscribe({
+    next: x => print(x, "line-one"),
+    error: error => print(error, "line-two")
+  });
 
-otherfakeGetData().pipe(
-    concatMap(() => fakeGetData().pipe(
+otherfakeGetData()
+  .pipe(
+    concatMap(() =>
+      fakeGetData().pipe(
         retry(),
-            /*
-                catchError(error => {
-                print('it is okay', 'line-one');
-                return throwError('it is okay');
-      })    */
-    )),
-    catchError(error => throwError('it is other okay'))
-)
-.subscribe({
-    next: x => print(x, 'line-one'),
-    error: error => print(error, 'line-two')
-});
 
+        catchError(error => {
+          print("it is okay", "line-one");
+          return throwError("it is okay");
+        })
+      )
+    ),
+    catchError(error => throwError("it is other okay"))
+  )
+  .subscribe({
+    next: x => print(x, "line-one"),
+    error: error => print(error, "line-two")
+  });
 
-
-click$.pipe(
-    concatMap(() => fakeGetData().pipe(
+click$
+  .pipe(
+    concatMap(() =>
+      fakeGetData().pipe(
         tap({
-            error() { print('error catched.', 'line-one')}
+          error() {
+            print("error catched.", "line-one");
+          }
         }),
         retry(),
         retryWhen(error$ => {
-            console.log('setting up retrying');
+          console.log("setting up retrying");
 
-            return error$.pipe(
-                switchMap((err): Observable<any> => {
-                    if (navigator.onLine) {
-                        return timer(1000);
-                    } else {
-                        return fromEvent(document, 'online');
-                    }
-                })
+          return error$.pipe(
+            switchMap(
+              (err): Observable<any> => {
+                if (navigator.onLine) {
+                  return timer(1000);
+                } else {
+                  return fromEvent(document, "online");
+                }
+              }
             )
+          );
+        }),
+        catchError(error => {
+          print("it is okay", "line-one");
+          return throwError("it is okay");
         })
-/*       catchError(error => { 
-          print('it is okay', 'line-one'); 
-          return throwError('it is okay'); 
-      })  */ 
-    )),
-    catchError(error => throwError('it is other okay'))
-)
-.subscribe({
-    next: x => print(x, 'line-one'),
-    error: error => print(error, 'line-two')
-});
-
-
+      )
+    ),
+    catchError(error => throwError("it is other okay"))
+  )
+  .subscribe({
+    next: x => print(x, "line-one"),
+    error: error => print(error, "line-two")
+  });
+*/
 /*     clicks  concatMap      subscribe
 next ----0-------->0 ....o ------>o
 error    x 
 complete x
 */
-
 
 /*       fakeData
       next      o
@@ -168,8 +177,6 @@ source.subscribe(
     error => { print(error, 'line-two'); }
 );
 */
-
-
 
 /*
 const observable = Observable.create((observer: Observer<string>) => {
@@ -716,7 +723,6 @@ const subscriptionSlow = exampleSlow.subscribe(val => print(val, 'line-one'));
   ...
 */
 
-
 /*
 const source = interval(1000).pipe(take(10));
 
@@ -772,14 +778,33 @@ sourcefive.subscribe(x => console.log({x}));
 sourcefive.subscribe(y => console.log({y}));
 */
 
-const sourcesix = ajax.getJSON('http://localhost:3000/users').pipe(share());
+/*
 
-const subscription = sourcesix.subscribe(x => console.log({x}));
+const sourcesix = ajax.getJSON("http://localhost:3000/users").pipe(share());
 
-const subscriptionone = sourcesix.subscribe(a => console.log({a}));
+const subscription = sourcesix.subscribe(x => console.log({ x }));
+
+const subscriptionone = sourcesix.subscribe(a => console.log({ a }));
 
 setTimeout(() => {
   subscription.unsubscribe();
   subscriptionone.unsubscribe();
-  sourcesix.subscribe(x => console.log({x}));
+  sourcesix.subscribe(x => console.log({ x }));
 }, 2000);
+*/
+
+/*
+const trigger$ = interval(1000).pipe(startWith(0));
+trigger$.subscribe(value => print(value, "one"));
+*/
+
+/*
+const trigger$ = timer(0, 1000);
+trigger$.subscribe(value => print(value, "one"));
+
+const triggertwo$ = interval(1000);
+triggertwo$.subscribe(value => print(value, "two"));
+
+const triggerthree$ = interval(1000).pipe(startWith(0));
+triggerthree$.subscribe(value => print(value, "three"));
+*/
