@@ -54,7 +54,6 @@ function print(val: any, lineId: string) {
   line.appendChild(el);
 }
 
-/*
 const getDataButton = document.querySelector("#getDataButton");
 
 const click$ = fromEvent(getDataButton, "click");
@@ -155,7 +154,7 @@ click$
     next: x => print(x, "line-one"),
     error: error => print(error, "line-two")
   });
-*/
+
 /*     clicks  concatMap      subscribe
 next ----0-------->0 ....o ------>o
 error    x 
@@ -167,19 +166,22 @@ complete x
       error     o
       complete  o
 */
-/*
+
 const source = fakeGetData().pipe(
-    catchError(err => {
-        print('saw error:' + err.message, 'line-one');
-        return throwError('throw error');
-    })
+  catchError(err => {
+    print("saw error:" + err.message, "line-one");
+    return throwError("throw error");
+  })
 );
 
 source.subscribe(
-    x => { print(x, 'line-one'); },
-    error => { print(error, 'line-two'); }
+  x => {
+    print(x, "line-one");
+  },
+  error => {
+    print(error, "line-two");
+  }
 );
-*/
 
 /*
 const observable = Observable.create((observer: Observer<string>) => {
